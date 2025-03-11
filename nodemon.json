@@ -1,0 +1,14 @@
+
+{
+    "ignore": [
+      "public/*",
+      "logs/*",
+      "uploads/*",
+      "*.log",
+      "*.json",
+      "README.md",
+      "node_modules/*",
+      ".git/*"
+    ]
+  }
+  
