@@ -8,6 +8,7 @@ import productRoutes from "./routes/productRoutes.js"
 import orderRoutes from "./routes/orderRoutes.js"
 import "./models/userModel.js";
 import userRoutes from "./routes/userRoutes.js"
+import authRoutes from "./routes/authRoutes.js"
 
 // charger les variables d'environnements
 dotenv.config();
@@ -56,6 +57,7 @@ app.use((req, res, next) => {
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 // Route de test
 app.get("/", (req, res) => {

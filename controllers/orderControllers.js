@@ -345,19 +345,14 @@ export const deleteOrder = async (req, res) => {
 
 
 export const simulatePayment = async (req, res) => {
-    console.log(`🚀 Début du paiement pour la commande ${req.params.id} à ${new Date().toISOString()}`);
-
-    console.log(`🕵️‍♂️ Requête PAY reçue de : ${req.headers["user-agent"]} à ${new Date().toISOString()}`);
-    console.log("🔥 simulatePayment appelé pour la commande:", req.params.id);
-    try {
+    try { 
         const order = await Order.findById(req.params.id);
         if (!order) {
             return res.status(404).json({ message: "Commande non trouvée " });
         }
 
          if (order.paymentStatus === "Réussi") {
-            console.log("⚠️ Paiement déjà effectué, sortie de la fonction.");
-            return res.status(400).json({ message: "Cette commande a déjà été payée." });
+           return res.status(400).json({ message: "Cette commande a déjà été payée." });
         }
 
         const paymentSuccess = req.body.failPayment ? false : true;
