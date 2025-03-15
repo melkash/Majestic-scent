@@ -20,10 +20,18 @@ const userSchema = new mongoose.Schema ({
     required: [true, "Le mot de passe est requis"],
     minlength: [6, "Le mot doit contenir au moins 6 caractères"]
  },
- role : {
+ role: {
     type: String,
     enum: ["client", "admin"],
     default: "client"
+ },
+ resetPasswordToken: {
+     type: String,
+     default: null
+ },
+ resetPasswordExpires: {
+   type: Date,
+   default: null
  },
  createdAt : {
     type: Date,

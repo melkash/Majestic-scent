@@ -1,4 +1,6 @@
 import User from "../models/userModel.js"
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 export const addUser = async (req, res) => {
     try  {
@@ -31,4 +33,89 @@ export const addUser = async (req, res) => {
    }catch (error) {
     res.status(500).json({ message: "Erreur lors de l'ajout de l'utilisateur", error: error.message })
    }
-}
+};
+
+export const getUserProfil = async (req, res) => {
+   try {
+       const { id } = req.params;
+
+       // 🛡 Vérifier si l'utilisateur est bien connecté
+       if (req.user.id !== id && req.user.role !== "admin"){
+         return res.status(403).json({ message: "ccès refusé. Vous ne pouvez voir que votre propre profil."});
+       }
+
+       // 🛠 Vérifier si l'ID est valide
+       if(!mongoose.isValidObjectId(id)) {
+         return res.status(400).json({ message: "ID utilisateur invalide" });
+       }
+
+       // 🔍 Trouver l'utilisateur en base de données
+       const user = await User.findById(id).select("-password");
+       if (!user){
+         return res.status(400).json({ message: "Utilisateur non trouvé" });
+       }
+
+       res.status(200).json(user)
+   } catch (error) {
+      res.status(500).json({ message: "Erreur de lors de la récupération du profil", error: error.message });
+   }
+};
+
+export const updateUserProfile = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const { name, email } = req.body;
+      
+      // 🛡 Vérifier si l'utilisateur est bien connecté
+      if( req.user.id !== id && req.user.role !== "admin" ){
+         return res.status(403).json({ message: "Accès refusé. Vous ne pouvez modifier que votre propre profil." });
+      }
+
+      // 🔍 Trouver l'utilisateur
+      const user = await User.findById(id);
+      if (!user) {
+         return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+
+       // ✅ Mettre à jour les champs
+       if (name) user.name = name;
+       if (email) user.email = email;
+
+       // 🚫 Empêcher la mise à jour du mot de passe ici
+       if (password) {
+         return res.status(403).json({ message: "Vous ne pouvez pas modifier le mot de passe d'un autre utilisateur." })
+       }
+
+       
+
+       await user.save()
+       res.status(200).json({ message: "Profil mis à jour avec succès", user: { name: user.name, email: email.user, role: role.user } })
+   } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la mise à jour du profil", error: error.message });
+   }
+};
+
+// ✅ Supprimer un utilisateur
+ export const deleteUser = async (req, res) => {
+   try {
+      const { id } = req.params;
+
+      // 🛡 Vérifier si l'utilisateur est bien connecté
+      if (req.params.id !== id && req.params.role !== "admin") {
+          return res.status(403).json({ message: "Accès refusé. Vous ne pouvez supprimer que votre propre compte. "})
+      }
+
+      // 🔍 Vérifier si l'utilisateur existe
+      const user = await User.findById(id);
+
+      if (!user) {
+         return res.status(404).json({ message: "Utisateur non trouvé" });
+      }
+
+      await User.findByIdAndDelete(id);
+      res.status(200).json({ message: "Utilisateur supprimé avec succès" })
+      } catch (error) {
+         res.status(500).json({ message: "Erreur lors de la suppression du compte", error: error.message });
+      }
+   }
+ 
