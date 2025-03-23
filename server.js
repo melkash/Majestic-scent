@@ -22,7 +22,7 @@ const app = express();
 // Middleware
 app.use(express.json());  // Pour lire le JSON dans les requêtes
 app.use(cors()); // Autoriser les requêtes depuis d'autres domaines
-app.use(morgan("dev")); // Logger les requêtes HTTP
+app.use(morgan(":method :url :status - :response-time ms")); // Logger les requêtes HTTP
 
 
 
@@ -32,23 +32,10 @@ mongoose.connect(process.env.MONGO_URI)
 console.log("MongoDB connecté avec succès !");
 console.log("Modèles enregistrés :", mongoose.modelNames()); // ✅ Vérifie les modèles enregistrés
 })
-.catch((error) => console.error("Erreur de connexion à MongoDB !", error));
-
-/*app.use((req, res, next) => {
-    console.log(`🔄 Requête reçue : ${req.method} ${req.url} - Heure : ${new Date().toISOString()}`);
-    next();
-});*/
-
-let lastRequest = "";
-
-app.use((req, res, next) => {
-    const currentRequest = `${req.method} ${req.url}`;
-    if (currentRequest !== lastRequest) {
-        console.log(`🔄 Requête reçue : ${currentRequest} - Heure : ${new Date().toISOString()}`);
-    }
-    lastRequest = currentRequest;
-    next();
-});
+.catch((error) => {
+    console.error("Erreur de connexion à MongoDB !", error);
+    process.exit(1)
+})
 
 
 
@@ -63,6 +50,12 @@ app.use("/api/auth", authRoutes);
 app.get("/", (req, res) => {
     res.send("Bienvenue sur l'API de Majestic Scent !")
 });
+
+// Middleware de gestion des erreurs
+app.use((req, res, next) => {
+  console.error("erreur détectée", err.stack);
+  res.status(500).json({ message: "Erreur interne du serveur" });
+})
 
 // Port et démarrage du serveur
 const PORT = process.env.PORT || 5005

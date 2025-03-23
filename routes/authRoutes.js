@@ -1,6 +1,9 @@
 import express from "express";
-import { register, login } from "../controllers/authController.js"
-import { requestPasswordReset, resetPassword } from "../controllers/authController.js";
+import { requestPasswordReset, 
+         resetPassword, 
+         valideResetToken, 
+         register, 
+         login } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -11,7 +14,10 @@ router.post("/login", login);
 // 📌 Route pour demander la réinitialisation du mot de passe
 router.post("/forgot-password", requestPasswordReset);
 
+// 📌 Route pour valider le token
+router.get("/reset-password", valideResetToken);
+
 // 📌 Route pour réinitialiser le mot de passe avec un token valide
-router.post("/reset-password/:token", resetPassword);
+router.post("/reset-password", resetPassword);
 
 export default router

@@ -33,15 +33,24 @@ const userSchema = new mongoose.Schema ({
    type: Date,
    default: null
  },
- createdAt : {
+ createdAt: {
     type: Date,
     default: Date.now
+ },
+ failedLoginAttempts: {
+   type: Number,
+   default: 0
+ },
+ accountLockedUntil: {
+   type: Date,
+   default: null
  }
 });
 
 // 🔐 Hash du mot de passe avant sauvegarde
 userSchema.pre('save', async function (next) {
-   if(!this.isModified('password')) return next();
+   if(this.isNew) return next(); // 🔥 Ne pas rehacher si c'est une création
+   if(!this.isModified('password')) return next(); // Ne pas rehacher si le password n'a pas changé
    this.password = await bcrypt.hash(this.password, 10);
    next();
 });

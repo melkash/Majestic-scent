@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
  
 const orderSchema = new mongoose.Schema({ 
-    userId : {
+    userId: {
         type: mongoose.Types.ObjectId,
         ref: "User", // Référence au modèle User
         required: true

@@ -10,7 +10,7 @@ export const protect = async (req, res, next) => {
 
          // 🔑 Vérifier le token
          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-         req.user = decoded; // // Ajoute l'utilisateur décodé à `req.user`
+         req.user = decoded; // Ajoute l'utilisateur décodé à `req.user`
 
          next();
     } catch (error) {

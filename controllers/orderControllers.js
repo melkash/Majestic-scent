@@ -246,6 +246,41 @@ export const getOrderById = async (req, res) => {
     }
 };
 
+// Annulation de la commande par le client
+export const cancelOrderByUser = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+
+        // 🚨 Vérifier si `orderId` est valide
+        if(!mongoose.isValidObjectId(orderId)){
+           return res.status(400).json({ message: "L'id de cette commande n'est pas valable" });
+        }
+
+        // 2️⃣ Recherche de la commande
+        const order = await Order.findById(orderId) 
+        if (!order) {
+            return res.status(404).json({ message: "Commande non trouvée" })
+        }
+
+        // 3️⃣ Vérification que l'utilisateur est bien le propriétaire
+        if (order.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Accès refusé. Ce n'est pas votre commande" });
+        }
+
+        // 4️⃣ Bloquer si la commande est déjà expédiée ou livrée
+        if (["Expédiée", "Livrée"].includes(order.status)) {
+            return res.status(400).json({ message: "Annulation impossible. La commande est déjà en cours de traitement" });
+        }
+
+        // 5️⃣ Mettre à jour le statut
+        order.status = "Annulée"
+        await order.save()
+
+        res.status(200).json({ message: "Commande annulée avec succès", order });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de l'annulation de la commande", error: error.message });
+    }
+}
 
 
 // Récupérer toutes les commandes d'un utilisateur

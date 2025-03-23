@@ -2,6 +2,7 @@ import User from "../models/userModel.js"
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
+// ✅ Ajouter un utilisateur (uniquement pour un admin)
 export const addUser = async (req, res) => {
     try  {
         const { name, email, password, role } = req.body
@@ -18,11 +19,14 @@ export const addUser = async (req, res) => {
         return res.status(400).json({ message: "Cet email est déjà utilisé"});
      }
 
+     // 📌 Hasher le mot de passe AVANT de l'utiliser
+     const hashedPassword = await bcrypt.hash(password, 10);
+
      // Créer un nouvel utilisateur
      const newUser = new User({
         name,
         email,
-        password, // Il sera hashé automatiquement grâce au `pre('save')`
+        password : hashedPassword, 
         role: role || "client" // Par défaut, on met "client"
      })
 
@@ -35,13 +39,22 @@ export const addUser = async (req, res) => {
    }
 };
 
+export const getAllUser = async (req, res) => {
+   try {
+        const users = await User.find().select("-password"); // ❌ Ne pas envoyer les mots de passe
+        res.status(200).json(users);
+      } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des utilisateurs", error: error.message })
+   }
+};
+
 export const getUserProfil = async (req, res) => {
    try {
        const { id } = req.params;
 
        // 🛡 Vérifier si l'utilisateur est bien connecté
        if (req.user.id !== id && req.user.role !== "admin"){
-         return res.status(403).json({ message: "ccès refusé. Vous ne pouvez voir que votre propre profil."});
+         return res.status(403).json({ message: "accès refusé. Vous ne pouvez voir que votre propre profil."});
        }
 
        // 🛠 Vérifier si l'ID est valide
@@ -82,14 +95,14 @@ export const updateUserProfile = async (req, res) => {
        if (email) user.email = email;
 
        // 🚫 Empêcher la mise à jour du mot de passe ici
-       if (password) {
+       if (req.body.password) {
          return res.status(403).json({ message: "Vous ne pouvez pas modifier le mot de passe d'un autre utilisateur." })
        }
 
        
 
        await user.save()
-       res.status(200).json({ message: "Profil mis à jour avec succès", user: { name: user.name, email: email.user, role: role.user } })
+       res.status(200).json({ message: "Profil mis à jour avec succès", user: { name: user.name, email: user.email, role: user.role } })
    } catch (error) {
       res.status(500).json({ message: "Erreur lors de la mise à jour du profil", error: error.message });
    }
@@ -101,7 +114,7 @@ export const updateUserProfile = async (req, res) => {
       const { id } = req.params;
 
       // 🛡 Vérifier si l'utilisateur est bien connecté
-      if (req.params.id !== id && req.params.role !== "admin") {
+      if (req.user.id !== id && req.user.role !== "admin") {
           return res.status(403).json({ message: "Accès refusé. Vous ne pouvez supprimer que votre propre compte. "})
       }
 
